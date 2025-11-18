@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../../core/Logger.php';
+
 class UserController
 {
     private $userModel;
@@ -14,7 +16,8 @@ class UserController
     {
         // Check if the user is logged in and is an admin
         if (!isset($_SESSION['user']) || !$_SESSION['user']['is_admin']) {
-            $_SESSION['error'] = "Vous devez être administrateur pour accéder à cette page.";
+            Logger::log('view_admin_users', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_admin']);
+            $_SESSION['error'] = "ERREURE 403 : Vous devez être administrateur pour accéder à cette page.";
             header('Location: /login');
             exit();
         }
@@ -31,7 +34,8 @@ class UserController
     {
         // Check if the user is logged in and is an admin
         if (!isset($_SESSION['user']) || !$_SESSION['user']['is_admin']) {
-            $_SESSION['error'] = "Vous devez être administrateur pour effectuer cette action.";
+            Logger::log('toggle_verify', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_admin', 'target_user' => $userId]);
+            $_SESSION['error'] = "ERREURE 403 : Vous devez être administrateur pour effectuer cette action.";
             header('Location: /login');
             exit();
         }
@@ -39,6 +43,7 @@ class UserController
         // Get the user to check their current verification status
         $user = $this->userModel->getUserById($userId);
         if (!$user) {
+            Logger::log('toggle_verify', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'user_not_found', 'target_user' => $userId]);
             $_SESSION['error'] = "Utilisateur non trouvé.";
             header('Location: /admin/users');
             exit();
@@ -48,9 +53,11 @@ class UserController
         if ($user['is_verified']) {
             $this->userModel->unverifyUser($userId);
             $_SESSION['success'] = "Utilisateur dé-vérifié avec succès.";
+            Logger::log('toggle_verify', $_SESSION['user']['email'], 'success', ['target_user' => $userId, 'new_status' => 'unverified']);
         } else {
             $this->userModel->verifyUser($userId);
             $_SESSION['success'] = "Utilisateur vérifié avec succès.";
+            Logger::log('toggle_verify', $_SESSION['user']['email'], 'success', ['target_user' => $userId, 'new_status' => 'verified']);
         }
 
         header('Location: /admin/users');
@@ -62,6 +69,7 @@ class UserController
     {
         // Check if the user is logged in and is an admin
         if (!isset($_SESSION['user']) || !$_SESSION['user']['is_admin']) {
+            Logger::log('toggle_admin', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_admin', 'target_user' => $userId]);
             $_SESSION['error'] = "Vous devez être administrateur pour effectuer cette action.";
             header('Location: /login');
             exit();
@@ -69,6 +77,7 @@ class UserController
 
         // Prevent admin from removing their own admin rights
         if ($userId == $_SESSION['user']['id']) {
+            Logger::log('toggle_admin', $_SESSION['user']['email'], 'failure', ['reason' => 'self_edit']);
             $_SESSION['error'] = "Vous ne pouvez pas modifier vos propres droits d'administrateur.";
             header('Location: /admin/users');
             exit();
@@ -77,6 +86,7 @@ class UserController
         // Get the user to check their current admin status
         $user = $this->userModel->getUserById($userId);
         if (!$user) {
+            Logger::log('toggle_admin', $_SESSION['user']['email'], 'failure', ['reason' => 'user_not_found', 'target_user' => $userId]);
             $_SESSION['error'] = "Utilisateur non trouvé.";
             header('Location: /admin/users');
             exit();
@@ -86,9 +96,11 @@ class UserController
         if ($user['is_admin']) {
             $this->userModel->removeAdmin($userId);
             $_SESSION['success'] = "Droits d'administrateur retirés avec succès.";
+            Logger::log('toggle_admin', $_SESSION['user']['email'], 'success', ['target_user' => $userId, 'new_status' => 'user']);
         } else {
             $this->userModel->makeAdmin($userId);
             $_SESSION['success'] = "Utilisateur promu administrateur avec succès.";
+            Logger::log('toggle_admin', $_SESSION['user']['email'], 'success', ['target_user' => $userId, 'new_status' => 'admin']);
         }
 
         header('Location: /admin/users');
@@ -100,6 +112,7 @@ class UserController
     {
         // Check if the user is logged in and is an admin
         if (!isset($_SESSION['user']) || !$_SESSION['user']['is_admin']) {
+            Logger::log('delete_user', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_admin', 'target_user' => $userId]);
             $_SESSION['error'] = "Vous devez être administrateur pour effectuer cette action.";
             header('Location: /login');
             exit();
@@ -107,6 +120,7 @@ class UserController
 
         // Prevent admin from deleting their own account
         if ($userId == $_SESSION['user']['id']) {
+            Logger::log('delete_user', $_SESSION['user']['email'], 'failure', ['reason' => 'self_delete']);
             $_SESSION['error'] = "Vous ne pouvez pas supprimer votre propre compte.";
             header('Location: /admin/users');
             exit();
@@ -115,6 +129,7 @@ class UserController
         // Check if user exists
         $user = $this->userModel->getUserById($userId);
         if (!$user) {
+            Logger::log('delete_user', $_SESSION['user']['email'], 'failure', ['reason' => 'user_not_found', 'target_user' => $userId]);
             $_SESSION['error'] = "Utilisateur non trouvé.";
             header('Location: /admin/users');
             exit();
@@ -131,6 +146,7 @@ class UserController
         }
 
         $_SESSION['success'] = "Utilisateur supprimé avec succès.";
+        Logger::log('delete_user', $_SESSION['user']['email'], 'success', ['target_user' => $userId]);
         header('Location: /admin/users');
         exit();
     }
@@ -142,6 +158,7 @@ class UserController
     {
         // Check if the user is logged in
         if (!isset($_SESSION['user'])) {
+            Logger::log('view_account', null, 'failure', ['reason' => 'not_authenticated']);
             $_SESSION['error'] = "Vous devez être connecté pour voir cette page.";
             header('Location: /login');
             exit();
@@ -166,6 +183,7 @@ class UserController
     public function uploadProfilePicture()
     {
         if (!isset($_SESSION['user'])) {
+            Logger::log('upload_pfp', null, 'failure', ['reason' => 'not_authenticated']);
             $_SESSION['error'] = "Vous devez être connecté.";
             header('Location: /login');
             exit();
@@ -186,10 +204,13 @@ class UserController
                 move_uploaded_file($_FILES['avatar']['tmp_name'], $targetPath);
                 $_SESSION['user']['pfp_path'] = "/uploads/pfps/{$userId}/avatar.jpg";
                 $_SESSION['success'] = "Photo de profil mise à jour.";
+                Logger::log('upload_pfp', $_SESSION['user']['email'], 'success');
             } else {
+                Logger::log('upload_pfp', $_SESSION['user']['email'], 'failure', ['reason' => 'invalid_type']);
                 $_SESSION['error'] = "Format de fichier invalide.";
             }
         } else {
+            Logger::log('upload_pfp', $_SESSION['user']['email'], 'failure', ['reason' => 'no_file']);
             $_SESSION['error'] = "Aucun fichier téléchargé.";
         }
 
@@ -202,6 +223,7 @@ class UserController
     {
         // Check if the user is logged in
         if (!isset($_SESSION['user'])) {
+            Logger::log('update_profile', null, 'failure', ['reason' => 'not_authenticated']);
             $_SESSION['error'] = "Vous devez être connecté pour mettre à jour votre profil.";
             header('Location: /login');
             exit();
@@ -213,6 +235,7 @@ class UserController
 
             // Check if the fields are empty
             if (empty($name)) {
+                Logger::log('update_profile', $_SESSION['user']['email'], 'failure', ['reason' => 'validation']);
                 $_SESSION['error'] = "Tous les champs doivent être remplis.";
                 header('Location: /account');
                 exit();
@@ -229,6 +252,7 @@ class UserController
 
             // Redirect to the account page with a success message
             $_SESSION['success'] = "Profil mis à jour avec succès.";
+            Logger::log('update_profile', $_SESSION['user']['email'], 'success');
             header('Location: /account');
             exit();
         }

@@ -198,5 +198,12 @@ class UserModel
         $stmt = $this->db->prepare('UPDATE user SET reset_code = NULL WHERE id = ?');
         $stmt->execute([$id]);
     }
+
+    // Update login attempts and optional block timestamp
+    public function updateLoginAttempts($id, $attempts, $blockedUntil = null)
+    {
+        $stmt = $this->db->prepare('UPDATE user SET attempts = ?, is_blocked_until = ? WHERE id = ?');
+        $stmt->execute([$attempts, $blockedUntil, $id]);
+    }
 }
 ?>

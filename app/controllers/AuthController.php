@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../../core/Logger.php';
+
 class AuthController
 {
     private $userModel;
@@ -34,8 +36,29 @@ class AuthController
         }
 
         $user = $this->userModel->getUserByEmail($email);
+        $maxAttempts = 5;
+        $lockDurationMinutes = 10;
+
+        if ($user && !empty($user['is_blocked_until'])) {
+            $blockedUntilTs = strtotime($user['is_blocked_until']);
+            if ($blockedUntilTs && $blockedUntilTs > time()) {
+                Logger::log('login', $email, 'blocked', ['blocked_until' => $user['is_blocked_until']]);
+                $_SESSION['error'] = "Compte verrouillé jusqu'au " . date('d/m/Y H:i', $blockedUntilTs) . ".";
+                header('Location: /login');
+                exit;
+            }
+            // Block expired, ensure counters are reset
+            $this->userModel->updateLoginAttempts($user['id'], 0, null);
+            $user['attempts'] = 0;
+            $user['is_blocked_until'] = null;
+        }
 
         if ($user && password_verify($password, $user['password'])) {
+            $this->userModel->updateLoginAttempts($user['id'], 0, null);
+            // Regenerate the session identifier post-authentication to prevent fixation
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_regenerate_id(true);
+            }
             $pfpPath = "uploads/pfps/{$user['id']}/avatar.jpg";
             if (!file_exists($pfpPath)) {
                 $pfpPath = "uploads/pfps/0/avatar.jpg";
@@ -50,9 +73,27 @@ class AuthController
                 'pfp_path' => "/$pfpPath"
             ];
 
+            Logger::log('login', $user['email'], 'success');
             header('Location: /');
             exit;
         } else {
+            if ($user) {
+                $attempts = (int)($user['attempts'] ?? 0);
+                $attempts++;
+                $blockedUntil = null;
+                if ($attempts >= $maxAttempts) {
+                    $blockedUntil = date('Y-m-d H:i:s', time() + ($lockDurationMinutes * 60));
+                    $attempts = 0;
+                }
+                $this->userModel->updateLoginAttempts($user['id'], $attempts, $blockedUntil);
+                $context = ['attempts' => $attempts];
+                if ($blockedUntil) {
+                    $context['blocked_until'] = $blockedUntil;
+                }
+                Logger::log('login', $user['email'], $blockedUntil ? 'locked' : 'failure', $context);
+            } else {
+                Logger::log('login', $email, 'failure', ['reason' => 'unknown_email']);
+            }
             $_SESSION['error'] = "Email ou mot de passe invalide.";
             header('Location: /login');
             exit;
@@ -109,6 +150,9 @@ class AuthController
         $user = $this->userModel->getUserByEmail($email);
 
         if ($user && password_verify($password, $user['password'])) {
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_regenerate_id(true);
+            }
             $pfpPath = "uploads/pfps/0/avatar.jpg";
 
             $_SESSION['user'] = [
@@ -132,7 +176,9 @@ class AuthController
     // Logout the user
     public function logout()
     {
+        $currentUser = $_SESSION['user']['email'] ?? null;
         session_destroy();
+        Logger::log('logout', $currentUser, 'success');
         header('Location: /');
         exit;
     }
@@ -146,9 +192,11 @@ class AuthController
             exit;
         }
 
+        $currentUser = $_SESSION['user']['email'] ?? null;
         $userId = $_SESSION['user']['id'];
         $this->userModel->deleteUser($userId);
 
+        Logger::log('delete_account', $currentUser, 'success', ['user_id' => $userId]);
         session_destroy();
         header('Location: /');
         exit;

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../core/EmailUtil.php';
+require_once __DIR__ . '/../../core/Logger.php';
 
 class PostController
 {
@@ -184,6 +185,7 @@ public function showPostsList($archive)
     {
         $post = $this->postModel->getPostById($postId);
         if (!$post || ($_SESSION['user']['id'] !== $post['id_user'] && $_SESSION['user']['is_admin'] != 1)) {
+            Logger::log('update_post', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_authorized', 'post_id' => $postId]);
             $_SESSION['error'] = "Action non autorisée.";
             header('Location: /posts');
             exit;
@@ -195,11 +197,12 @@ public function showPostsList($archive)
         $techs = $_POST['techs'] ?? [];
     
         if (empty($title) || empty($content)) {
+            Logger::log('update_post', $_SESSION['user']['email'], 'failure', ['reason' => 'validation', 'post_id' => $postId]);
             $_SESSION['error'] = "Titre et contenu sont requis.";
             header("Location: /edit-post?id=$postId");
             exit;
         }
-    
+
         $this->postModel->updatePost($postId, $title, $content, $tags, $techs);
     
         if (!empty($_FILES['image']['tmp_name'])) {
@@ -210,7 +213,8 @@ public function showPostsList($archive)
             $targetPath = "$postDir/post.jpg";
             move_uploaded_file($_FILES['image']['tmp_name'], $targetPath);
         }
-    
+
+        Logger::log('update_post', $_SESSION['user']['email'], 'success', ['post_id' => $postId]);
         header("Location: /post/$postId");
         exit;
     }
@@ -218,6 +222,7 @@ public function showPostsList($archive)
     public function toggleLike()
     {
         if (!isset($_SESSION['user']) || (!$_SESSION['user']['is_verified'])) {
+            Logger::log('toggle_like', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_verified']);
             echo json_encode(['success' => false, 'error' => 'Non autorisé']);
             exit;
         }
@@ -239,6 +244,12 @@ public function showPostsList($archive)
 
         $likeCount = $this->postModel->getLikesCount($postId);
 
+        Logger::log('toggle_like', $_SESSION['user']['email'], 'success', [
+            'post_id' => $postId,
+            'liked' => $liked,
+            'like_count' => $likeCount
+        ]);
+
         echo json_encode([
             'success' => true,
             'liked' => $liked,
@@ -251,12 +262,14 @@ public function showPostsList($archive)
     {
         $post = $this->postModel->getPostById($postId);
         if (!$post || ($_SESSION['user']['id'] !== $post['id_user'] && $_SESSION['user']['is_admin'] != 1)) {
+            Logger::log('delete_post', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_authorized', 'post_id' => $postId]);
             $_SESSION['error'] = "Action non autorisée ou post introuvable.";
             header('Location: /posts');
             exit;
         }
 
         $this->postModel->deletePost($postId);
+        Logger::log('delete_post', $_SESSION['user']['email'], 'success', ['post_id' => $postId]);
         header("Location: /posts");
         exit;
     }
@@ -265,12 +278,14 @@ public function showPostsList($archive)
     {
         $post = $this->postModel->getPostById($postId);
         if (!$post || ($_SESSION['user']['id'] !== $post['id_user'] && $_SESSION['user']['is_admin'] != 1)) {
+            Logger::log('nuke_post', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_authorized', 'post_id' => $postId]);
             $_SESSION['error'] = "Action non autorisée ou post introuvable.";
             header('Location: /posts');
             exit;
         }
 
         $this->postModel->nukePost($postId);
+        Logger::log('nuke_post', $_SESSION['user']['email'], 'success', ['post_id' => $postId]);
         header("Location: /admin/archive");
         exit;
     }
@@ -279,12 +294,14 @@ public function showPostsList($archive)
     {
         $post = $this->postModel->getPostById($postId);
         if (!$post || ($_SESSION['user']['id'] !== $post['id_user'] && $_SESSION['user']['is_admin'] != 1)) {
+            Logger::log('restore_post', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_authorized', 'post_id' => $postId]);
             $_SESSION['error'] = "Action non autorisée ou post introuvable.";
             header('Location: /posts');
             exit;
         }
 
         $this->postModel->restorePost($postId);
+        Logger::log('restore_post', $_SESSION['user']['email'], 'success', ['post_id' => $postId]);
         header("Location: /posts");
         exit;
     }
@@ -292,12 +309,14 @@ public function showPostsList($archive)
     public function createPost()
     {
         if (!isset($_SESSION['user'])) {
+            Logger::log('create_post', null, 'failure', ['reason' => 'not_authenticated']);
             $_SESSION['error'] = "Vous devez être connecté pour publier.";
             header('Location: /login');
             exit;
         }
 
         if (!$_SESSION['user']['is_verified']) {
+            Logger::log('create_post', $_SESSION['user']['email'], 'failure', ['reason' => 'not_verified']);
             $_SESSION['error'] = "Vous devez vérifier votre compte avant de publier.";
             header('Location: /');
             exit;
@@ -308,6 +327,7 @@ public function showPostsList($archive)
         $content = trim($_POST['content'] ?? '');
     
         if (empty($title) || empty($content)) {
+            Logger::log('create_post', $_SESSION['user']['email'], 'failure', ['reason' => 'validation']);
             $_SESSION['error'] = "Titre et contenu sont requis.";
             header('Location: /create-post');
             exit;
@@ -336,6 +356,7 @@ public function showPostsList($archive)
         $this->postModel->attachTagsToPost($postId, $tags);
         $this->postModel->attachTechsToPost($postId, $techs);
 
+        Logger::log('create_post', $_SESSION['user']['email'], 'success', ['post_id' => $postId, 'has_image' => $hasImage]);
         header('Location: /posts');
         exit;
     }
@@ -343,6 +364,7 @@ public function showPostsList($archive)
     public function deleteComment($commentId) 
     {
         if (!isset($_SESSION['user'])) {
+            Logger::log('delete_comment', null, 'failure', ['reason' => 'not_authenticated', 'comment_id' => $commentId]);
             $_SESSION['error'] = "Vous devez être connecté pour supprimer un commentaire.";
             header('Location: /login');
             exit;
@@ -350,12 +372,14 @@ public function showPostsList($archive)
 
         $comment = $this->commentModel->getCommentById($commentId);
         if (!$comment || ($_SESSION['user']['is_admin'] != 1)) {
+            Logger::log('delete_comment', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_admin_or_missing', 'comment_id' => $commentId]);
             $_SESSION['error'] = "Action non autorisée ou commentaire introuvable.";
             header('Location: /posts');
             exit;
         }
 
         $this->commentModel->deleteComment($commentId);
+        Logger::log('delete_comment', $_SESSION['user']['email'], 'success', ['comment_id' => $commentId, 'post_id' => $comment['id_post']]);
         header("Location: /post/{$comment['id_post']}");
         exit;
     }
@@ -363,6 +387,7 @@ public function showPostsList($archive)
     public function deleteReply($replyId)
     {
         if (!isset($_SESSION['user'])) {
+            Logger::log('delete_reply', null, 'failure', ['reason' => 'not_authenticated', 'reply_id' => $replyId]);
             $_SESSION['error'] = "Vous devez être connecté pour supprimer un commentaire.";
             header('Location: /login');
             exit;
@@ -370,12 +395,14 @@ public function showPostsList($archive)
 
         $reply = $this->commentModel->getReplyById($replyId);
         if (!$reply || ($_SESSION['user']['is_admin'] != 1)) {
+            Logger::log('delete_reply', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_admin_or_missing', 'reply_id' => $replyId]);
             $_SESSION['error'] = "Action non autorisée ou commentaire introuvable.";
             header('Location: /posts');
             exit;
         }
 
         $this->commentModel->deleteReply($replyId);
+        Logger::log('delete_reply', $_SESSION['user']['email'], 'success', ['reply_id' => $replyId, 'post_id' => $reply['id_post'], 'comment_id' => $reply['id_comment'] ?? null]);
         header("Location: /post/{$reply['id_post']}");
         exit;
     }

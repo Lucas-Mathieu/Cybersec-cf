@@ -1,8 +1,37 @@
 <?php
-// Start session if not already started
-session_start();
+// Bootstrap session with hardened cookie flags and inactivity enforcement
+function startSecureSession(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return;
+    }
+
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || ($_SERVER['SERVER_PORT'] ?? null) == 443;
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $isSecure,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
+
+startSecureSession();
+
+$sessionTimeout = 15 * 60;
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $sessionTimeout) {
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_unset();
+        session_destroy();
+    }
+    startSecureSession();
+}
+$_SESSION['last_activity'] = time();
 
 // Load dependencies
+require_once '../core/Logger.php';
 require_once '../app/controllers/AuthController.php';
 require_once '../app/controllers/PostController.php';
 require_once '../app/controllers/UserController.php';
@@ -144,10 +173,12 @@ switch (true) {
     case $uri === '/ajax/add-comment' && $method === 'POST':
         header('Content-Type: application/json');
         if (!isset($_SESSION['user']) || !$_SESSION['user']['is_verified']) {
+            Logger::log('add_comment', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_verified']);
             echo json_encode(['success' => false, 'error' => 'Non autorisé']);
             exit;
         }
         $commentModel->addComment($_SESSION['user']['id'], $_POST['post_id'], $_POST['text']);
+        Logger::log('add_comment', $_SESSION['user']['email'], 'success', ['post_id' => $_POST['post_id']]);
         // Reloads the last comment
         $comments = $commentModel->getCommentsByPostId($_POST['post_id']);
         $lastComment = end($comments);
@@ -161,10 +192,12 @@ switch (true) {
     case $uri === '/ajax/add-reply' && $method === 'POST':
         header('Content-Type: application/json');
         if (!isset($_SESSION['user']) || !$_SESSION['user']['is_verified']) {
+            Logger::log('add_reply', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'not_verified']);
             echo json_encode(['success' => false, 'error' => 'Non autorisé']);
             exit;
         }
         $commentModel->addReply($_SESSION['user']['id'], $_POST['post_id'], $_POST['comment_id'], $_POST['text']);
+        Logger::log('add_reply', $_SESSION['user']['email'], 'success', ['post_id' => $_POST['post_id'], 'comment_id' => $_POST['comment_id']]);
         // Reloads the last reply
         $comments = $commentModel->getCommentsByPostId($_POST['post_id'] ?? 0);
         $target = null;
