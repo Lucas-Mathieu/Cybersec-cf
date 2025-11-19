@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../core/Logger.php';
+require_once __DIR__ . '/../../core/Validator.php';
 
 class UserController
 {
@@ -231,12 +232,20 @@ class UserController
 
         // Check if the request method is POST
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = $_POST['name'] ?? '';
-
-            // Check if the fields are empty
-            if (empty($name)) {
+            try {
+                $name = Validator::string(
+                    $_POST['name'] ?? '',
+                    'Nom',
+                    2,
+                    80,
+                    [
+                        'pattern' => '/^[\p{L}\s\'-]+$/u',
+                        'patternMessage' => "Le nom ne peut contenir que des lettres, espaces, apostrophes ou tirets."
+                    ]
+                );
+            } catch (InvalidArgumentException $e) {
                 Logger::log('update_profile', $_SESSION['user']['email'], 'failure', ['reason' => 'validation']);
-                $_SESSION['error'] = "Tous les champs doivent être remplis.";
+                $_SESSION['error'] = $e->getMessage();
                 header('Location: /account');
                 exit();
             }

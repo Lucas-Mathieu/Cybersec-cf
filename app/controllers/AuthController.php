@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../../core/Logger.php';
+require_once __DIR__ . '/../../core/Validator.php';
 
 class AuthController
 {
@@ -26,11 +27,11 @@ class AuthController
     // Handle login logic
     public function login()
     {
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-
-        if (empty($email) || empty($password)) {
-            $_SESSION['error'] = "Tous les champs doivent être remplis.";
+        try {
+            $email = Validator::email($_POST['email'] ?? '');
+            $password = Validator::password($_POST['password'] ?? '', 'Mot de passe', 4, 128);
+        } catch (InvalidArgumentException $e) {
+            $_SESSION['error'] = $e->getMessage();
             header('Location: /login');
             exit;
         }
@@ -53,7 +54,21 @@ class AuthController
             $user['is_blocked_until'] = null;
         }
 
-        if ($user && password_verify($password, $user['password'])) {
+        $passwordMatches = false;
+        if ($user) {
+            $passwordMatches = password_verify($password, $user['password']);
+            if (
+                !$passwordMatches &&
+                password_get_info($user['password'])['algo'] === 0 &&
+                hash_equals($user['password'], $password)
+            ) {
+                // Legacy plain-text password detected, upgrade it to a hash
+                $this->userModel->changeUserPassword($user['id'], $password);
+                $passwordMatches = true;
+            }
+        }
+
+        if ($user && $passwordMatches) {
             $this->userModel->updateLoginAttempts($user['id'], 0, null);
             // Regenerate the session identifier post-authentication to prevent fixation
             if (session_status() === PHP_SESSION_ACTIVE) {
@@ -103,21 +118,22 @@ class AuthController
     // Handle registration logic
     public function register()
     {
-        $name = $_POST['name'] ?? '';
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $passwordConfirm = $_POST['password_confirm'] ?? '';
-
-        // Check if all fields are filled
-        if (empty($name) || empty($email) || empty($password) || empty($passwordConfirm)) {
-            $_SESSION['error'] = "Tous les champs doivent être remplis.";
-            header('Location: /register');
-            exit;
-        }
-
-        // Validate email domain
-        if (!preg_match('/@esiee-it\.fr$/i', $email) && !preg_match('/@edu\.esiee-it\.fr$/', $email)) {
-            $_SESSION['error'] = "L'email doit être du domaine esiee-it.fr.";
+        try {
+            $name = Validator::string(
+                $_POST['name'] ?? '',
+                'Nom',
+                2,
+                80,
+                [
+                    'pattern' => '/^[\p{L}\s\'-]+$/u',
+                    'patternMessage' => "Le nom ne peut contenir que des lettres, espaces, apostrophes ou tirets."
+                ]
+            );
+            $email = Validator::email($_POST['email'] ?? '', ['esiee-it.fr', 'edu.esiee-it.fr']);
+            $password = Validator::password($_POST['password'] ?? '', 'Mot de passe', 8, 128, true);
+            $passwordConfirm = Validator::password($_POST['password_confirm'] ?? '', 'Confirmation du mot de passe', 8, 128);
+        } catch (InvalidArgumentException $e) {
+            $_SESSION['error'] = $e->getMessage();
             header('Location: /register');
             exit;
         }
@@ -125,13 +141,6 @@ class AuthController
         // Check if email already exists
         if ($this->userModel->getUserByEmail($email)) {
             $_SESSION['error'] = "Email déjà utilisée.";
-            header('Location: /register');
-            exit;
-        }
-
-        // Validate password strength
-        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-            $_SESSION['error'] = "Le mot de passe doit contenir au moins 8 caractères, incluant une majuscule, une minuscule, un chiffre et un caractère spécial.";
             header('Location: /register');
             exit;
         }
@@ -243,10 +252,10 @@ class AuthController
         }
 
         $userId = $_SESSION['user']['id'];
-        $code = $_POST['code'] ?? '';
-
-        if (empty($code)) {
-            $_SESSION['error'] = "Le code de vérification est requis.";
+        try {
+            $code = Validator::numericCode($_POST['code'] ?? '', 'Code de vérification', 6);
+        } catch (InvalidArgumentException $e) {
+            $_SESSION['error'] = $e->getMessage();
             header('Location: /account');
             exit;
         }
@@ -266,10 +275,10 @@ class AuthController
     // Send password reset email
     public function sendPasswordResetEmail()
     {
-        $email = $_POST['email'] ?? '';
-
-        if (empty($email)) {
-            $_SESSION['error'] = "L'email est requis.";
+        try {
+            $email = Validator::email($_POST['email'] ?? '');
+        } catch (InvalidArgumentException $e) {
+            $_SESSION['error'] = $e->getMessage();
             header('Location: /login');
             exit;
         }
@@ -298,13 +307,13 @@ class AuthController
     // Reset password
     public function resetPassword()
     {
-        $email = $_POST['email'] ?? '';
-        $code = $_POST['code'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $passwordConfirm = $_POST['password_confirm'] ?? '';
-
-        if (empty($email) || empty($code) || empty($password) || empty($passwordConfirm)) {
-            $_SESSION['error'] = "Tous les champs doivent être remplis.";
+        try {
+            $email = Validator::email($_POST['email'] ?? '');
+            $code = Validator::numericCode($_POST['code'] ?? '', 'Code de réinitialisation', 6);
+            $password = Validator::password($_POST['password'] ?? '', 'Mot de passe', 8, 128, true);
+            $passwordConfirm = Validator::password($_POST['password_confirm'] ?? '', 'Confirmation du mot de passe', 8, 128);
+        } catch (InvalidArgumentException $e) {
+            $_SESSION['error'] = $e->getMessage();
             header('Location: /login');
             exit;
         }

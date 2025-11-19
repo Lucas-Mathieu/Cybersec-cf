@@ -32,6 +32,7 @@ $_SESSION['last_activity'] = time();
 
 // Load dependencies
 require_once '../core/Logger.php';
+require_once '../core/Validator.php';
 require_once '../app/controllers/AuthController.php';
 require_once '../app/controllers/PostController.php';
 require_once '../app/controllers/UserController.php';
@@ -177,10 +178,18 @@ switch (true) {
             echo json_encode(['success' => false, 'error' => 'Non autorisé']);
             exit;
         }
-        $commentModel->addComment($_SESSION['user']['id'], $_POST['post_id'], $_POST['text']);
-        Logger::log('add_comment', $_SESSION['user']['email'], 'success', ['post_id' => $_POST['post_id']]);
+        try {
+            $postId = Validator::numericId($_POST['post_id'] ?? null, 'Identifiant du post');
+            $text = Validator::text($_POST['text'] ?? '', 'Commentaire', 3, 1500);
+        } catch (InvalidArgumentException $e) {
+            Logger::log('add_comment', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'validation']);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+        $commentModel->addComment($_SESSION['user']['id'], $postId, $text);
+        Logger::log('add_comment', $_SESSION['user']['email'], 'success', ['post_id' => $postId]);
         // Reloads the last comment
-        $comments = $commentModel->getCommentsByPostId($_POST['post_id']);
+        $comments = $commentModel->getCommentsByPostId($postId);
         $lastComment = end($comments);
         ob_start();
         include '../app/views/partials/comment.php';
@@ -196,13 +205,22 @@ switch (true) {
             echo json_encode(['success' => false, 'error' => 'Non autorisé']);
             exit;
         }
-        $commentModel->addReply($_SESSION['user']['id'], $_POST['post_id'], $_POST['comment_id'], $_POST['text']);
-        Logger::log('add_reply', $_SESSION['user']['email'], 'success', ['post_id' => $_POST['post_id'], 'comment_id' => $_POST['comment_id']]);
+        try {
+            $postId = Validator::numericId($_POST['post_id'] ?? null, 'Identifiant du post');
+            $commentId = Validator::numericId($_POST['comment_id'] ?? null, 'Identifiant du commentaire');
+            $text = Validator::text($_POST['text'] ?? '', 'Réponse', 3, 1500);
+        } catch (InvalidArgumentException $e) {
+            Logger::log('add_reply', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'validation']);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
+        $commentModel->addReply($_SESSION['user']['id'], $postId, $commentId, $text);
+        Logger::log('add_reply', $_SESSION['user']['email'], 'success', ['post_id' => $postId, 'comment_id' => $commentId]);
         // Reloads the last reply
-        $comments = $commentModel->getCommentsByPostId($_POST['post_id'] ?? 0);
+        $comments = $commentModel->getCommentsByPostId($postId);
         $target = null;
         foreach ($comments as $comment) {
-            if ($comment['id'] == $_POST['comment_id']) {
+            if ($comment['id'] == $commentId) {
                 $target = $comment;
                 break;
             }

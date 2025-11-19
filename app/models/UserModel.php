@@ -22,8 +22,9 @@ class UserModel
     // Create a new user
     public function createUser($name, $email, $password)
     {
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $stmt = $this->db->prepare('INSERT INTO user (name, email, password) VALUES (?, ?, ?)');
-        $stmt->execute([$name, $email, $password]);
+        $stmt->execute([$name, $email, $hashedPassword]);
     }
 
     // Get user by ID
@@ -163,8 +164,9 @@ class UserModel
     // Store verification code
     public function storeVerificationCode($id, $code)
     {
+        $hash = password_hash($code, PASSWORD_DEFAULT);
         $stmt = $this->db->prepare('UPDATE user SET verification_code = ? WHERE id = ?');
-        $stmt->execute([$code, $id]);
+        $stmt->execute([$hash, $id]);
     }
 
     // Verify code
@@ -173,14 +175,15 @@ class UserModel
         $stmt = $this->db->prepare('SELECT verification_code FROM user WHERE id = ?');
         $stmt->execute([$id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $user && $user['verification_code'] === $code;
+        return $user && !empty($user['verification_code']) && password_verify($code, $user['verification_code']);
     }
 
     // Store password reset code
     public function storeResetCode($id, $code)
     {
+        $hash = password_hash($code, PASSWORD_DEFAULT);
         $stmt = $this->db->prepare('UPDATE user SET reset_code = ? WHERE id = ?');
-        $stmt->execute([$code, $id]);
+        $stmt->execute([$hash, $id]);
     }
 
     // Verify reset code
@@ -189,7 +192,7 @@ class UserModel
         $stmt = $this->db->prepare('SELECT reset_code FROM user WHERE id = ?');
         $stmt->execute([$id]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $user && $user['reset_code'] === $code;
+        return $user && !empty($user['reset_code']) && password_verify($code, $user['reset_code']);
     }
 
     // Clear reset code

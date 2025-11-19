@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../../core/EmailUtil.php';
 require_once __DIR__ . '/../../core/Logger.php';
+require_once __DIR__ . '/../../core/Validator.php';
 
 class PostController
 {
@@ -191,14 +192,14 @@ public function showPostsList($archive)
             exit;
         }
     
-        $title = trim($_POST['title'] ?? '');
-        $content = trim($_POST['content'] ?? '');
-        $tags = $_POST['tags'] ?? [];
-        $techs = $_POST['techs'] ?? [];
-    
-        if (empty($title) || empty($content)) {
+        try {
+            $title = Validator::string($_POST['title'] ?? '', 'Titre', 5, 150);
+            $content = Validator::text($_POST['content'] ?? '', 'Contenu', 20, 5000);
+            $tags = Validator::arrayOfIds($_POST['tags'] ?? [], 'Tags', 10);
+            $techs = Validator::arrayOfIds($_POST['techs'] ?? [], 'Technologies', 10);
+        } catch (InvalidArgumentException $e) {
             Logger::log('update_post', $_SESSION['user']['email'], 'failure', ['reason' => 'validation', 'post_id' => $postId]);
-            $_SESSION['error'] = "Titre et contenu sont requis.";
+            $_SESSION['error'] = $e->getMessage();
             header("Location: /edit-post?id=$postId");
             exit;
         }
@@ -227,7 +228,13 @@ public function showPostsList($archive)
             exit;
         }
 
-        $postId = $_POST['post_id'];
+        try {
+            $postId = Validator::numericId($_POST['post_id'] ?? null, 'Identifiant du post');
+        } catch (InvalidArgumentException $e) {
+            Logger::log('toggle_like', $_SESSION['user']['email'] ?? null, 'failure', ['reason' => 'invalid_post_id']);
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            exit;
+        }
         $userId = $_SESSION['user']['id'];
 
         // Check if the post is already liked by the user
@@ -323,12 +330,15 @@ public function showPostsList($archive)
         }
     
         $userId = $_SESSION['user']['id'];
-        $title = trim($_POST['title'] ?? '');
-        $content = trim($_POST['content'] ?? '');
-    
-        if (empty($title) || empty($content)) {
+
+        try {
+            $title = Validator::string($_POST['title'] ?? '', 'Titre', 5, 150);
+            $content = Validator::text($_POST['content'] ?? '', 'Contenu', 20, 5000);
+            $tags = Validator::arrayOfIds($_POST['tags'] ?? [], 'Tags', 10);
+            $techs = Validator::arrayOfIds($_POST['techs'] ?? [], 'Technologies', 10);
+        } catch (InvalidArgumentException $e) {
             Logger::log('create_post', $_SESSION['user']['email'], 'failure', ['reason' => 'validation']);
-            $_SESSION['error'] = "Titre et contenu sont requis.";
+            $_SESSION['error'] = $e->getMessage();
             header('Location: /create-post');
             exit;
         }
@@ -347,10 +357,6 @@ public function showPostsList($archive)
             $targetPath = "$postDir/post.jpg";
             move_uploaded_file($_FILES['image']['tmp_name'], $targetPath);
         }
-
-        // Get tags and techs from the form
-        $tags = $_POST['tags'] ?? [];
-        $techs = $_POST['techs'] ?? [];
 
         // Insert them into the database
         $this->postModel->attachTagsToPost($postId, $tags);

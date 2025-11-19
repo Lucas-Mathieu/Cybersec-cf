@@ -1,0 +1,35 @@
+Connexion (AuthController.php:27-115)
+email: email RFC valide ≤190 caractères
+password: 4‑128 caractères (pas de contrainte de complexité).
+Toute chaîne type ' OR 1=1 échoue car non conforme au format email/mot de passe.
+
+Inscription (AuthController.php:118-183)
+name: 2‑80 caractères, lettres/espaces/apostrophes/tirets uniquement.
+email: domaine esiee-it.fr ou edu.esiee-it.fr, ≤190 caractères.
+password: 8‑128 caractères avec majuscule, minuscule, chiffre, caractère spécial.
+password_confirm: mêmes règles et égalité stricte avec password.
+Toute entrée hors format est rejetée avant la base.
+
+Mise à jour du profil (UserController.php:222-266)
+name: mêmes règles que pour l’inscription (2‑80 caractères, lettres/espaces/apostrophes/tirets).
+Les valeurs invalides renvoient une erreur et ne touchent jamais la BDD.
+
+Création / édition de post (PostController.php:195-220 & 334-364)
+title: 5‑150 caractères (HTML supprimé).
+content: 20‑5000 caractères (HTML supprimé).
+tags et techs: tableaux d’au plus 10 identifiants numériques (doublons filtrés).
+Les chaînes dangereuses comme ' OR 1=1 sont soit rejetées (titre/description trop courtes ou caractères interdits) soit insérées comme texte neutre via PDO.
+
+Toggle like AJAX (PostController.php:223-266)
+post_id: entier positif requis. Toute valeur non numérique retourne un JSON d’erreur.
+
+Commentaires / Réponses AJAX (core/Router.php:173-233)
+post_id / comment_id: entiers positifs.
+text: 3‑1500 caractères (HTML supprimé).
+En cas de format invalide, le serveur renvoie un JSON d’erreur ; aucune requête SQL n’est exécutée.
+
+Vérification email / Reset mot de passe (AuthController.php:245-345)
+code: exactement 6 chiffres (numericCode).
+email: même règle qu’ailleurs (RFC + longueur).
+password et password_confirm: règles fortes (8‑128, complexité) + égalité obligatoire.
+Les codes ou mots de passe mal formés sont bloqués avant l’appel au modèle.
