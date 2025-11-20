@@ -64,6 +64,9 @@ if (isset($_SESSION['user'])) {
         unset($_SESSION['user']);
     }
 }
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
 // Get the URI and HTTP method
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
