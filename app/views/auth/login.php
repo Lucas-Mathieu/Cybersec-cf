@@ -27,6 +27,7 @@
         <button id="forgot-password-btn" class="btn btn-secondary">Mot de passe oublié ?</button>
 
         <form action="/reset-password" method="POST" id="reset-password-form" class="auth-form" style="display: none;">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <input type="email" name="email" placeholder="Email" required class="form-input">
             <button type="submit" name="send_code" class="btn btn-primary">Envoyer le code</button>
             <input type="text" name="code" placeholder="Code de réinitialisation" class="form-input">

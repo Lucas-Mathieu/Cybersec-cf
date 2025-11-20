@@ -303,6 +303,8 @@ class AuthController
             exit;
         }
 
+
+
         $code = str_pad(rand(0, 999999), 6, '0', STR_PAD_LEFT);
         $this->userModel->storeResetCode($user['id'], $code);
 
@@ -340,6 +342,12 @@ class AuthController
 
         if (!$user) {
             $_SESSION['error'] = "Aucun utilisateur trouvé avec cet email.";
+            header('Location: /login');
+            exit;
+        }
+
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            $_SESSION['error'] = "Erreur de sécurité (CSRF). Veuillez réessayer.";
             header('Location: /login');
             exit;
         }
