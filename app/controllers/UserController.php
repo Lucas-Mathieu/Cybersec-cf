@@ -266,4 +266,5 @@ class UserController
             exit();
         }
     }
+
 }

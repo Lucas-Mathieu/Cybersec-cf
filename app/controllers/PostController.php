@@ -207,13 +207,38 @@ public function showPostsList($archive)
         $this->postModel->updatePost($postId, $title, $content, $tags, $techs);
     
         if (!empty($_FILES['image']['tmp_name'])) {
+            // Vérifier erreur d'upload
+            if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+                $_SESSION['error'] = "Erreur lors de l'upload de l'image.";
+                header("Location: /edit-post?id=$postId");
+                exit;
+            }
+        
+            // Vérification du type MIME réel
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = finfo_file($finfo, $_FILES['image']['tmp_name']);
+            finfo_close($finfo);
+        
+            $allowed = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!in_array($mime, $allowed, true)) {
+                $_SESSION['error'] = "Format d'image invalide. Seuls JPG/PNG/GIF sont acceptés.";
+                header("Location: /edit-post?id=$postId");
+                exit;
+            }
+        
             $postDir = __DIR__ . "/../../www/uploads/posts/{$postId}";
             if (!file_exists($postDir)) {
-                mkdir($postDir, 0777, true);
+                mkdir($postDir, 0755, true);
             }
             $targetPath = "$postDir/post.jpg";
-            move_uploaded_file($_FILES['image']['tmp_name'], $targetPath);
+        
+            if (!is_uploaded_file($_FILES['image']['tmp_name']) || !move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+                $_SESSION['error'] = "Impossible d'enregistrer l'image.";
+                header("Location: /edit-post?id=$postId");
+                exit;
+            }
         }
+        
 
         Logger::log('update_post', $_SESSION['user']['email'], 'success', ['post_id' => $postId]);
         header("Location: /post/$postId");
