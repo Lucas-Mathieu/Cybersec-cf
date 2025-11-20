@@ -43,7 +43,7 @@
                                 <?= $user['is_admin'] ? 'Retirer Admin' : 'Faire Admin' ?>
                             </button>
                         </form>
-                        <form action="/admin/delete-user/<?= $user['id'] ?>" method="POST" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                        <form action="/admin/delete-user/<?= $user['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir supprimer cet utilisateur ?', ENT_QUOTES, 'UTF-8') ?>">
                             <button type="submit" class="btn btn-red">Supprimer</button>
                         </form>
                     </td>

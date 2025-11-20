@@ -12,7 +12,7 @@
     <?php endif; ?>
 
     <?php if (!empty($_SESSION['error'])): ?>
-        <p class="error-msg"><?= $_SESSION['error'] ?></p>
+        <p class="error-msg"><?= htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8') ?></p>
         <?php unset($_SESSION['error']); ?>
     <?php endif; ?>
 
@@ -92,8 +92,9 @@
 
                     <div class="post-text"><?= nl2br(htmlspecialchars($post['text'])) ?></div>
 
+                    <?php $isLiked = !empty($post['liked']); ?>
                     <button class="like-btn" data-post-id="<?= $post['id'] ?>" aria-label="Like post">
-                        <i class="fa <?= $post['liked'] ? 'fa-heart' : 'fa-heart-o' ?>" style="color: <?= $post['liked'] ? 'red' : 'gray' ?>"></i>
+                        <span class="like-icon<?= $isLiked ? ' is-liked' : '' ?>" aria-hidden="true"></span>
                         <span class="like-count"><?= $post['like_count'] ?? 0 ?></span>
                     </button>
                 </div>
@@ -104,50 +105,7 @@
     <?php endif; ?>
 </main>
 
-<script src='/assets/js/ajax_like.js'></script>
-<script>
-// Gestion des boutons de bascule pour les filtres
-document.querySelectorAll('.toggle-filter-btn').forEach(button => {
-    button.addEventListener('click', () => {
-        const targetId = button.getAttribute('data-target');
-        const target = document.getElementById(targetId);
-        const isHidden = target.style.display === 'none' || !target.style.display;
-
-        // Masquer tous les autres filtres
-        document.querySelectorAll('.filter-options').forEach(opt => {
-            opt.style.display = 'none';
-        });
-
-        // Afficher ou masquer le filtre ciblé
-        target.style.display = isHidden ? 'flex' : 'none';
-    });
-});
-
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('.filter-group') && !e.target.closest('.toggle-filter-btn')) {
-        document.querySelectorAll('.filter-options').forEach(opt => {
-            opt.style.display = 'none';
-        });
-    }
-});
-
-// Detect text overflow and add 'overflow' class
-document.querySelectorAll('.post-text').forEach(textDiv => {
-    const isOverflowing = textDiv.scrollHeight > textDiv.clientHeight;
-    if (isOverflowing) {
-        textDiv.classList.add('overflow');
-    }
-});
-
-// Make post cards clickable
-document.querySelectorAll('.post-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-        // Avoid triggering navigation when clicking the like button
-        if (!e.target.closest('.like-btn')) {
-            window.location.href = card.getAttribute('data-href');
-        }
-    });
-});
-</script>
+<script src='/assets/js/ajax_like.js' defer></script>
+<script src='/assets/js/posts_filters.js' defer></script>
 
 <?php require_once '../app/views/partials/footer.php'; ?>

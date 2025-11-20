@@ -1,49 +1,42 @@
-// Post click management
-document.querySelectorAll('.post-card').forEach(card => {
-    card.addEventListener('click', function(event) {
-        // Check if the click was on the like button
-        if (!event.target.closest('.like-btn')) {
-            window.location.href = this.dataset.href;
-        }
-    });
-});
+const UNAUTHORIZED_MESSAGE = 'Non autoris\u00e9';
 
-// Like / Unlike functionality
-document.querySelectorAll('.like-btn').forEach(button => {
-    button.addEventListener('click', async function(event) {
-        event.stopPropagation(); // Avoids triggering the card click event
-
-        const postId = button.dataset.postId;
-
-        const response = await fetch('/ajax/toggle-like', {
-            method: 'POST',
-            body: new URLSearchParams({ post_id: postId }),
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.post-card').forEach((card) => {
+        card.addEventListener('click', function (event) {
+            if (!event.target.closest('.like-btn')) {
+                window.location.href = this.dataset.href;
             }
         });
+    });
 
-        const result = await response.json();
+    document.querySelectorAll('.like-btn').forEach((button) => {
+        button.addEventListener('click', async function (event) {
+            event.stopPropagation();
 
-        if (result.success) {
-            const icon = button.querySelector('i');
-            const countSpan = button.querySelector('.like-count');
+            const postId = button.dataset.postId;
 
-            if (result.liked) {
-                icon.classList.remove('fa-heart-o');
-                icon.classList.add('fa-heart');
-                icon.style.color = 'red';
+            const response = await fetch('/ajax/toggle-like', {
+                method: 'POST',
+                body: new URLSearchParams({ post_id: postId }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                const icon = button.querySelector('.like-icon');
+                const countSpan = button.querySelector('.like-count');
+
+                icon.classList.toggle('is-liked', Boolean(result.liked));
+
+                countSpan.textContent = result.like_count;
+            } else if (result.error === UNAUTHORIZED_MESSAGE) {
+                alert('Veuillez vous connecter \u00e0 un compte v\u00e9rifi\u00e9 pour cela.');
             } else {
-                icon.classList.remove('fa-heart');
-                icon.classList.add('fa-heart-o');
-                icon.style.color = 'gray';
+                alert(result.error);
             }
-
-            countSpan.textContent = result.like_count;
-        } else if (result.error === 'Non autorisé') {
-            alert('Veuillez vous connecter à un compte vérifié pour cela.');
-        } else {
-            alert(result.error);
-        }
+        });
     });
 });

@@ -1,89 +1,89 @@
-// Select the comments list (parent element for event delegation)
-const commentsList = document.querySelector('.comments-list');
+document.addEventListener('DOMContentLoaded', () => {
+    const commentsList = document.querySelector('.comments-list');
+    const toggleCommentBtn = document.getElementById('toggle-comment-btn');
+    const commentForm = document.getElementById('comment-form');
 
-commentsList.addEventListener('click', (e) => {
-    if (e.target.classList.contains('reply-btn')) {
-        const btn = e.target;
-        const id = btn.dataset.commentId;
-        const replyForm = commentsList.querySelector(`.reply-form[data-comment-id="${id}"]`);
-        if (replyForm) {
-            replyForm.style.display = replyForm.style.display === 'none' ? 'block' : 'none';
-            console.log(`Reply form for comment ${id} toggled.`);
-        }
+    if (toggleCommentBtn && commentForm) {
+        toggleCommentBtn.addEventListener('click', () => {
+            const isHidden = commentForm.style.display === 'none' || commentForm.style.display === '';
+            commentForm.style.display = isHidden ? 'block' : 'none';
+        });
     }
-});
 
-// Event delegation for reply forms
-commentsList.addEventListener('submit', async function(e) {
-    if (e.target.classList.contains('reply-form')) {
-        e.preventDefault();
-        const form = e.target;
-        const formData = new FormData(form);
+    if (!commentsList) {
+        return;
+    }
 
-        try {
-            const response = await fetch('/ajax/add-reply', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-            if (result.success) {
-                const replyList = form.closest('.comment').querySelector('.comment-replies');
-                if (replyList) {
-                    replyList.innerHTML += result.html;
+    commentsList.addEventListener('click', (event) => {
+        if (event.target.classList.contains('reply-btn')) {
+            const button = event.target;
+            const id = button.dataset.commentId;
+            const replyForm = commentsList.querySelector(`.reply-form[data-comment-id="${id}"]`);
+            if (replyForm) {
+                const isHidden = replyForm.style.display === 'none' || replyForm.style.display === '';
+                replyForm.style.display = isHidden ? 'block' : 'none';
+            }
+        }
+    });
+
+    commentsList.addEventListener('submit', async (event) => {
+        if (event.target.classList.contains('reply-form')) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/ajax/add-reply', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const result = await response.json();
+                if (result.success) {
+                    const replyList = form.closest('.comment').querySelector('.comment-replies');
+                    if (replyList) {
+                        replyList.insertAdjacentHTML('beforeend', result.html);
+                    } else {
+                        const newList = document.createElement('ul');
+                        newList.className = 'comment-replies';
+                        newList.innerHTML = result.html;
+                        form.closest('.comment').appendChild(newList);
+                    }
+                    form.reset();
+                    form.style.display = 'none';
                 } else {
-                    const newList = document.createElement('ul');
-                    newList.className = 'comment-replies';
-                    newList.innerHTML = result.html;
-                    form.closest('.comment').appendChild(newList);
+                    alert(result.error);
                 }
-                form.reset();
-                form.style.display = 'none'; // Hide after submission
-            } else {
-                alert(result.error);
+            } catch (error) {
+                console.error('Error while adding reply:', error);
             }
-        } catch (error) {
-            console.error('Error while adding reply:', error);
         }
+    });
+
+    if (commentForm) {
+        commentForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(commentForm);
+
+            try {
+                const response = await fetch('/ajax/add-comment', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const result = await response.json();
+                if (result.success) {
+                    const noCommentMsg = document.querySelector('.no-comments');
+                    if (noCommentMsg) {
+                        noCommentMsg.remove();
+                    }
+                    commentsList.insertAdjacentHTML('beforeend', result.html);
+                    commentForm.reset();
+                    commentForm.style.display = 'none';
+                } else {
+                    alert(result.error);
+                }
+            } catch (error) {
+                console.error('Error while adding comment:', error);
+            }
+        });
     }
 });
-
-// Handle the toggle button for the main comment form
-const toggleCommentBtn = document.getElementById('toggle-comment-btn');
-const commentForm = document.getElementById('comment-form');
-
-if (toggleCommentBtn && commentForm) {
-    toggleCommentBtn.addEventListener('click', () => {
-        commentForm.style.display = commentForm.style.display === 'none' ? 'block' : 'none';
-    });
-}
-
-// Handle submission of the main comment form
-if (commentForm) {
-    commentForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const form = e.target;
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch('/ajax/add-comment', {
-                method: 'POST',
-                body: formData
-            });
-            const result = await response.json();
-            if (result.success) {
-                const commentList = document.querySelector('.comments-list');
-                const noCommentMsg = document.querySelector('.no-comments');
-                if (noCommentMsg) {
-                    noCommentMsg.remove();
-                }
-                commentList.insertAdjacentHTML('beforeend', result.html); // Append the new comment
-                form.reset();
-                form.style.display = 'none'; // Hide after submission
-            } else {
-                alert(result.error);
-            }
-        } catch (error) {
-            console.error('Error while adding comment:', error);
-        }
-    });
-}

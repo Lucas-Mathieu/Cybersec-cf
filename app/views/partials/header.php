@@ -1,12 +1,20 @@
+<?php
+$cspPolicy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'";
+if (!headers_sent()) {
+    header("Content-Security-Policy: {$cspPolicy}");
+}
+?>
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="<?= htmlspecialchars($cspPolicy, ENT_QUOTES, 'UTF-8') ?>">
     <title>Project Hub</title>
     <link rel="stylesheet" href="/assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="/assets/js/burger.js" defer></script>
+    <script src="/assets/js/confirm.js" defer></script>
 </head>
 
 <body>
@@ -50,6 +58,4 @@
                 </ul>
             </div>
         </nav>
-    </header>
-
-<script src="/assets/js/burger.js"></script>
+</header>

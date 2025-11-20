@@ -16,7 +16,7 @@
                     <?php endif; ?>
 
                     <?php if (!$_SESSION['user']['is_admin'] && $_SESSION['user']['id'] === $post['id_user']): ?>
-                        <form action="/delete-post/<?= $post['id'] ?>" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir archiver ce post ?');" style="display: inline;">
+                        <form action="/delete-post/<?= $post['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir archiver ce post ?', ENT_QUOTES, 'UTF-8') ?>">
                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                             <button type="submit" class="btn btn-red">Archiver</button>
                         </form>
@@ -25,17 +25,17 @@
                     <?php if ($_SESSION['user']['is_admin']): ?>
                         <a href="/post-history/<?= $post['id'] ?>" class="btn btn-primary">Historique</a>
                         <?php if ($post['is_deleted']): ?>
-                            <form action="/restore-post/<?= $post['id'] ?>" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir restaurer ce post ?');" style="display: inline;">
+                            <form action="/restore-post/<?= $post['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir restaurer ce post ?', ENT_QUOTES, 'UTF-8') ?>">
                                 <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                                 <button type="submit" class="btn btn-primary">Restaurer</button>
                             </form>
 
-                            <form action="/nuke-post/<?= $post['id'] ?>" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce post ?');" style="display: inline;">
+                            <form action="/nuke-post/<?= $post['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir supprimer ce post ?', ENT_QUOTES, 'UTF-8') ?>">
                                 <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                                 <button type="submit" class="btn btn-red">Supprimer</button>
                             </form>
                         <?php else: ?>
-                            <form action="/delete-post/<?= $post['id'] ?>" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir archiver ce post ?');" style="display: inline;">
+                            <form action="/delete-post/<?= $post['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir archiver ce post ?', ENT_QUOTES, 'UTF-8') ?>">
                                 <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                                 <button type="submit" class="btn btn-red">Archiver</button>
                             </form>
@@ -75,8 +75,9 @@
             <?= nl2br(htmlspecialchars($post['text'])) ?>
         </div>
 
+        <?php $postLiked = !empty($post['liked']); ?>
         <button class="like-btn" data-post-id="<?= $post['id'] ?>" aria-label="Like post">
-            <i class="fa <?= $post['liked'] ? 'fa-heart' : 'fa-heart-o' ?>" style="color: <?= $post['liked'] ? 'red' : 'gray' ?>"></i>
+            <span class="like-icon<?= $postLiked ? ' is-liked' : '' ?>" aria-hidden="true"></span>
             <span class="like-count"><?= $post['like_count'] ?? 0 ?></span>
         </button>
     </article>
@@ -115,7 +116,7 @@
                                 </form>
                             <?php endif; ?>
                             <?php if (!empty($_SESSION['user']) && $_SESSION['user']['is_admin']): ?>
-                                <form action="/delete-comment/<?= $comment['id'] ?>" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?');" style="display: inline;">
+                                <form action="/delete-comment/<?= $comment['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir supprimer ce commentaire ?', ENT_QUOTES, 'UTF-8') ?>">
                                     <input type="hidden" name="comment_id" value="<?= $comment['id'] ?>">
                                     <button type="submit" class="btn btn-red">Supprimer</button>
                                 </form>
@@ -134,7 +135,7 @@
                                         <p><?= nl2br(htmlspecialchars($reply['text'])) ?></p>
                                         <?php if (!empty($_SESSION['user']) && $_SESSION['user']['is_admin']): ?>
                                             <div class="reply-actions">
-                                                <form action="/delete-reply/<?= $reply['id'] ?>" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette réponse ?');" style="display: inline;">
+                                                <form action="/delete-reply/<?= $reply['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir supprimer cette réponse ?', ENT_QUOTES, 'UTF-8') ?>">
                                                     <input type="hidden" name="reply_id" value="<?= $reply['id'] ?>">
                                                     <button type="submit" class="btn btn-red">Supprimer</button>
                                                 </form>
@@ -153,7 +154,7 @@
     </section>
 </main>
 
-<script src='/assets/js/ajax_comment.js'></script>
-<script src='/assets/js/ajax_like.js'></script>
+<script src='/assets/js/ajax_comment.js' defer></script>
+<script src='/assets/js/ajax_like.js' defer></script>
 
 <?php require_once '../app/views/partials/footer.php'; ?>

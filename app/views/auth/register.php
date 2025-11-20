@@ -4,7 +4,7 @@
         <h1 class="auth-title">Register</h1>
         
         <?php if (!empty($_SESSION['error'])): ?>
-            <p class="error-msg"><?= $_SESSION['error'] ?></p>
+            <p class="error-msg"><?= htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 

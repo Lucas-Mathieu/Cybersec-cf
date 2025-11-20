@@ -17,7 +17,7 @@
             </form>
         <?php endif; ?>
         <?php if (!empty($_SESSION['user']) && $_SESSION['user']['is_admin']): ?>
-            <form action="/delete-comment/<?= $lastComment['id'] ?>" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?');" style="display: inline;">
+            <form action="/delete-comment/<?= $lastComment['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir supprimer ce commentaire ?', ENT_QUOTES, 'UTF-8') ?>">
                 <input type="hidden" name="comment_id" value="<?= $lastComment['id'] ?>">
                 <button type="submit" class="btn btn-red">Supprimer</button>
             </form>
@@ -25,4 +25,4 @@
     </div>
 </li>
 
-<script src='/assets/js/ajax_comment.js'></script>
+<script src='/assets/js/ajax_comment.js' defer></script>

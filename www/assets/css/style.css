@@ -366,21 +366,31 @@ nav ul li a:hover {
     transition: transform 0.3s ease, color 0.3s ease;
 }
 
-.like-btn i {
-    font-size: 24px;
-    transition: transform 0.2s ease;
+.like-btn .like-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    transition: transform 0.2s ease, color 0.2s ease;
+    color: gray;
 }
 
-.like-btn:hover i {
-    transform: scale(1.1);
+.like-btn .like-icon::before {
+    content: '\2661';
 }
 
-.like-btn i.fa-heart {
+.like-btn .like-icon.is-liked {
     color: red;
 }
 
-.like-btn i.fa-heart-o {
-    color: gray;
+.like-btn .like-icon.is-liked::before {
+    content: '\2665';
+}
+
+.like-btn:hover .like-icon {
+    transform: scale(1.1);
 }
 
 .like-count {
@@ -841,7 +851,7 @@ footer a:hover {
         padding: 8px;
     }
 
-    .like-btn i {
+    .like-btn .like-icon {
         font-size: 20px;
     }
 

@@ -4,12 +4,12 @@
         <h1 class="auth-title">Login</h1>
 
         <?php if (!empty($_SESSION['error'])): ?>
-            <p class="error-msg"><?= htmlspecialchars($_SESSION['error']) ?></p>
+            <p class="error-msg"><?= htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
         <?php if (!empty($_SESSION['success'])): ?>
-            <p class="success-msg"><?= htmlspecialchars($_SESSION['success']) ?></p>
+            <p class="success-msg"><?= htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8') ?></p>
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
@@ -35,11 +35,6 @@
         </form>
     </main>
 
-    <script>
-        document.getElementById('forgot-password-btn').addEventListener('click', function() {
-            const form = document.getElementById('reset-password-form');
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
-        });
-    </script>
+    <script src="/assets/js/login_toggle.js" defer></script>
 
     <?php require_once '../app/views/partials/footer.php'; ?>

@@ -4,12 +4,12 @@
         <h1 class="account-title">My Account</h1>
 
         <?php if (isset($_SESSION['success'])): ?>
-            <div class="success-message"><?= htmlspecialchars($_SESSION['success']) ?></div>
+            <div class="success-message"><?= htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8') ?></div>
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error'])): ?>
-            <div class="error-message"><?= htmlspecialchars($_SESSION['error']) ?></div>
+            <div class="error-message"><?= htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8') ?></div>
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
