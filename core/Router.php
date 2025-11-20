@@ -20,6 +20,12 @@ function startSecureSession(): void
 
 startSecureSession();
 
+$cspPolicy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'";
+if (!headers_sent()) {
+    header("Content-Security-Policy: {$cspPolicy}");
+}
+$GLOBALS['CSP_POLICY'] = $cspPolicy;
+
 $sessionTimeout = 15 * 60;
 if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $sessionTimeout) {
     if (session_status() === PHP_SESSION_ACTIVE) {

@@ -1,8 +1,5 @@
 <?php
-$cspPolicy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'";
-if (!headers_sent()) {
-    header("Content-Security-Policy: {$cspPolicy}");
-}
+$cspPolicy = $GLOBALS['CSP_POLICY'] ?? "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'";
 ?>
 <!DOCTYPE html>
 <html lang="fr">
