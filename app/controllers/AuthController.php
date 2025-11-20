@@ -40,6 +40,12 @@ class AuthController
         $maxAttempts = 5;
         $lockDurationMinutes = 10;
 
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            $_SESSION['error'] = "Erreur de sécurité (CSRF). Veuillez réessayer.";
+            header('Location: /login');
+            exit;
+        }
+
         if ($user && !empty($user['is_blocked_until'])) {
             $blockedUntilTs = strtotime($user['is_blocked_until']);
             if ($blockedUntilTs && $blockedUntilTs > time()) {
@@ -137,6 +143,12 @@ class AuthController
             header('Location: /register');
             exit;
         }
+
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            $_SESSION['error'] = "Erreur de sécurité (CSRF). Veuillez réessayer.";
+            header('Location: /register');
+            exit;
+                }
 
         // Check if email already exists
         if ($this->userModel->getUserByEmail($email)) {

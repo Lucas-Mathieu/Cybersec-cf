@@ -14,9 +14,15 @@ class UserModel
     // Get user by email
     public function getUserByEmail($email)
     {
+
+        // On prépare la requête (C'est la partie qui manquait)
         $stmt = $this->db->prepare('SELECT * FROM user WHERE email = ?');
+                
+        // On l'exécute avec le paramètre sécurisé
         $stmt->execute([$email]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Maintenant $stmt existe, on peut faire le fetch
+        return $stmt->fetch(PDO::FETCH_ASSOC);   
     }
 
     // Create a new user

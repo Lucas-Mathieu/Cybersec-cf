@@ -9,6 +9,7 @@
         <?php endif; ?>
 
         <form action="/register" method="POST" class="auth-form">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <input type="text" name="name" placeholder="Name" required class="form-input">
             <input type="email" name="email" placeholder="Email (esiee-it.fr)" required class="form-input">
             <input type="password" name="password" id="password" placeholder="Password" required class="form-input">

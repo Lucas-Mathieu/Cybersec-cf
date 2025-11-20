@@ -14,6 +14,7 @@
         <?php endif; ?>
 
         <form action="/login" method="POST" class="auth-form">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <input type="email" name="email" placeholder="Email" required class="form-input">
             <input type="password" name="password" placeholder="Password" required class="form-input">
             <button type="submit" class="btn btn-primary">Connexion</button>
