@@ -4,12 +4,12 @@
     <h2 class="posts-title">Gestion des Utilisateurs</h2>
 
     <?php if (isset($_SESSION['error'])): ?>
-        <p class="error-msg"><?= $_SESSION['error'] ?></p>
+        <p class="error-msg"><?= htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8') ?></p>
         <?php unset($_SESSION['error']); ?>
     <?php endif; ?>
 
     <?php if (isset($_SESSION['success'])): ?>
-        <p class="success-msg" style="color: green; text-align: center;"><?= $_SESSION['success'] ?></p>
+        <p class="success-msg" style="color: green; text-align: center;"><?= htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8') ?></p>
         <?php unset($_SESSION['success']); ?>
     <?php endif; ?>
 

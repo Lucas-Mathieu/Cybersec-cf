@@ -450,3 +450,18 @@ public function showPostsList($archive)
     }
 }
 ?>
+
+
+<?php 
+// pour les error et success
+if (!empty($_SESSION['error'])): ?>
+    <div class="error">
+        <?= htmlspecialchars($_SESSION['error'], ENT_QUOTES, 'UTF-8') ?>
+    </div>
+<?php endif; ?>
+
+<?php if (!empty($_SESSION['success'])): ?>
+    <div class="success">
+        <?= htmlspecialchars($_SESSION['success'], ENT_QUOTES, 'UTF-8') ?>
+    </div>
+<?php endif; ?>
