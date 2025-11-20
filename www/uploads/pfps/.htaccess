@@ -1,10 +1,13 @@
-# Empêche entièrement l'exécution de PHP dans ce dossier
-php_flag engine off
 
-# Empêche l'exécution de scripts CGI
+# Empêche CGI
 Options -ExecCGI
 
-# Bloque complètement les fichiers dangereux
+# Autorise tous les fichiers statiques (jpg, png, etc.)
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+
+# Bloque les fichiers dangereux
 <FilesMatch "\.(php|php5|php7|php8|phtml|phar|cgi|pl|py|sh)$">
-    deny from all
+    Require all denied
 </FilesMatch>
