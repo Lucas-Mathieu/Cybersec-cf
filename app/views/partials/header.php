@@ -1,5 +1,5 @@
 <?php
-$cspPolicy = $GLOBALS['CSP_POLICY'] ?? "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'";
+$cspPolicy = $GLOBALS['CSP_POLICY'] ?? "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'";
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -7,7 +7,6 @@ $cspPolicy = $GLOBALS['CSP_POLICY'] ?? "default-src 'self'; script-src 'self'; s
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="<?= htmlspecialchars($cspPolicy, ENT_QUOTES, 'UTF-8') ?>">
     <title>Project Hub</title>
     <link rel="stylesheet" href="/assets/css/style.css">
     <script src="/assets/js/burger.js" defer></script>

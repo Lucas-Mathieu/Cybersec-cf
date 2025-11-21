@@ -9,7 +9,7 @@
     <div class="comment-actions">
         <?php if (!empty($_SESSION['user']) && $_SESSION['user']['is_verified']) : ?>
             <button class="reply-btn btn" data-comment-id="<?= $lastComment['id'] ?>">Répondre</button>
-            <form class="reply-form" data-comment-id="<?= $lastComment['id'] ?>" style="display: none;">
+            <form class="reply-form is-hidden" data-comment-id="<?= $lastComment['id'] ?>">
                 <textarea name="text" placeholder="Votre réponse..." required></textarea>
                 <input type="hidden" name="comment_id" value="<?= $lastComment['id'] ?>">
                 <input type="hidden" name="post_id" value="<?= $lastComment['id_post'] ?>">
@@ -17,7 +17,7 @@
             </form>
         <?php endif; ?>
         <?php if (!empty($_SESSION['user']) && $_SESSION['user']['is_admin']): ?>
-            <form action="/delete-comment/<?= $lastComment['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir supprimer ce commentaire ?', ENT_QUOTES, 'UTF-8') ?>">
+            <form action="/delete-comment/<?= $lastComment['id'] ?>" method="POST" class="inline-form" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir supprimer ce commentaire ?', ENT_QUOTES, 'UTF-8') ?>">
                 <input type="hidden" name="comment_id" value="<?= $lastComment['id'] ?>">
                 <button type="submit" class="btn btn-red">Supprimer</button>
             </form>

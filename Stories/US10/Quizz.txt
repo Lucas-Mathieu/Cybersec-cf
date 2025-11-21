@@ -1,0 +1,71 @@
+QCM n°1 – OWASP Top 10
+
+1. Quel exemple représente une Injection (A03) ?
+A. Utiliser un mot de passe trop court
+ B. Entrer du SQL malveillant dans un champ de formulaire
+ C. Se connecter sans HTTPS
+ D. Ne pas mettre à jour une API
+✔ Réponse : B
+
+2. A01 — Broken Access Control peut permettre :
+A. Le vol des certificats SSL
+ B. L’exécution d’un malware sur le serveur
+ C. L’accès à un compte administrateur sans autorisation
+ D. L’arrêt du système de logs
+✔ Réponse : C
+
+3. Le risque principal de A02 — Cryptographic Failures est :
+A. La perte de disponibilité
+ B. La fuite de données sensibles non chiffrées
+ C. Les injections dans l’API
+ D. Le plantage d’un serveur
+✔ Réponse : B
+
+4. Quelle situation correspond à A04 — Insecure Design ?
+A. Aucune validation des entrées n’a été prévue dans l’architecture
+ B. Un mot de passe oublié par l’utilisateur
+ C. Une dépendance mal téléchargée
+ D. Une base de données trop lente
+✔ Réponse : A
+
+5. Quel exemple illustre A05 — Security Misconfiguration ?
+A. Un développeur oublie de mettre une virgule dans le code
+ B. Une base de données accessible sans mot de passe
+ C. Un utilisateur se trompe de login
+ D. Un script JavaScript se charge lentement
+✔ Réponse : B
+
+6. Quelle phrase résume le mieux A06 — Vulnerable and Outdated Components ?
+A. Utiliser des composants non mis à jour et exposés à des failles connues
+ B. Utiliser trop de fichiers CSS
+ C. Utiliser un design trop moche
+ D. Utiliser trop de logs
+✔ Réponse : A
+
+7. Quel danger fait partie de A07 — Identification and Authentication Failures ?
+A. L’absence de limitation sur les tentatives de connexion
+ B. Un mauvais routage des API
+ C. Une mauvaise gestion des certificats
+ D. L’utilisation d’un CDN
+✔ Réponse : A
+
+8. A08 — Software and Data Integrity Failures concerne :
+A. La corruption de logs
+ B. L’entrée de texte mal encodée
+ C. L’absence de vérification d’intégrité lors des mises à jour logicielles
+ D. Une erreur d'affichage sur le site
+✔ Réponse : C
+
+9. A09 — Security Logging and Monitoring Failures entraîne :
+A. Des pages qui ne s’affichent plus
+ B. L’impossibilité de détecter qu’une attaque est en cours
+ C. Le plantage d’un fichier CSS
+ D. Des problèmes d’ergonomie
+✔ Réponse : B
+
+10. Le SSRF (A10) permet à un attaquant :
+A. D’injecter du HTML
+ B. De forcer un serveur à contacter un service interne non accessible normalement
+ C. De modifier une API REST
+ D. D’effacer des logs
+✔ Réponse : B

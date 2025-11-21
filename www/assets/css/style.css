@@ -636,6 +636,42 @@ button:hover:not(.like-btn) {
     width: 100%;
 }
 
+.admin-users-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+    padding: 15px;
+    text-align: left;
+}
+
+.admin-users-table thead tr {
+    background: #343a40;
+    color: #fff;
+}
+
+.admin-users-table tbody tr {
+    border-bottom: 1px solid #eee;
+}
+
+.admin-users-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.inline-form {
+    display: inline;
+}
+
+.is-hidden {
+    display: none !important;
+}
+
 .success-message, .success-msg {
     color: #28a745;
     text-align: center;

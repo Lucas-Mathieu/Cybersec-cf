@@ -27,7 +27,7 @@
         <div class="filters">
             <div class="filter-group">
                 <button type="button" class="toggle-filter-btn" data-target="tags-filter">Tags</button>
-                <div id="tags-filter" class="filter-options option-group-search" style="display: none;">
+                <div id="tags-filter" class="filter-options option-group-search is-hidden">
                     <?php foreach ($tags as $tag): ?>
                         <input type="checkbox" name="tags[]" id="tag-<?= $tag['id'] ?>" value="<?= $tag['id'] ?>" class="hidden-checkbox" <?= in_array($tag['id'], $_GET['tags'] ?? []) ? 'checked' : '' ?>>
                         <label for="tag-<?= $tag['id'] ?>" class="option-label"><?= htmlspecialchars($tag['name']) ?></label>
@@ -37,7 +37,7 @@
 
             <div class="filter-group">
                 <button type="button" class="toggle-filter-btn" data-target="techs-filter">Technologies</button>
-                <div id="techs-filter" class="filter-options option-group-search" style="display: none;">
+                <div id="techs-filter" class="filter-options option-group-search is-hidden">
                     <?php foreach ($techs as $tech): ?>
                         <input type="checkbox" name="techs[]" id="tech-<?= $tech['id'] ?>" value="<?= $tech['id'] ?>" class="hidden-checkbox" <?= in_array($tech['id'], $_GET['techs'] ?? []) ? 'checked' : '' ?>>
                         <label for="tech-<?= $tech['id'] ?>" class="option-label"><?= htmlspecialchars($tech['name']) ?></label>

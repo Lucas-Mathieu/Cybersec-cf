@@ -7,7 +7,7 @@
     <p><?= nl2br(htmlspecialchars($lastReply['text'])) ?></p>
     <?php if (!empty($_SESSION['user']) && $_SESSION['user']['is_admin']): ?>
         <div class="reply-actions">
-            <form action="/delete-reply/<?= $lastReply['id'] ?>" method="POST" style="display: inline;" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir supprimer cette réponse ?', ENT_QUOTES, 'UTF-8') ?>">
+            <form action="/delete-reply/<?= $lastReply['id'] ?>" method="POST" class="inline-form" data-confirm="<?= htmlspecialchars('Êtes-vous sûr de vouloir supprimer cette réponse ?', ENT_QUOTES, 'UTF-8') ?>">
                 <input type="hidden" name="reply_id" value="<?= $lastReply['id'] ?>">
                 <button type="submit" class="btn btn-red">Supprimer</button>
             </form>
